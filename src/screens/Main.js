@@ -7,19 +7,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import firebase from "firebase/compat/app";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { TodoItem } from "../components";
+import TodoItem from "../components/TodoItem";
 import FirebaseServices from "../services/FirebaseServices";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 
-export const Main = () => {
+export default function Main({ db }) {
   const [addTodoText, setAddTodoText] = useState("");
   const [todoList, setTodoList] = useState([]);
 
-  const todoRef = firebase.firestore().collection("todos");
+  const todosRef = collection(db, "todos");
 
-  useEffect(() => {
-    todoRef.onSnapshot(
+  useEffect(function () {
+    onSnapshot(
+      query(todosRef, orderBy("createAt", "desc")),
       (querySnapshot) => {
         const newTodos = [];
         querySnapshot.forEach((doc) => {
@@ -28,57 +30,51 @@ export const Main = () => {
           newTodos.push(todo);
         });
         setTodoList(newTodos);
-      },
-      (error) => {
-        console.error(error);
       }
     );
   }, []);
 
-  const onChangeAddTodoText = (text) => {
+  function onChangeAddTodoText(text) {
     setAddTodoText(text);
-  };
+  }
 
-  const onPressAdd = async () => {
-    await FirebaseServices.addTodo(addTodoText);
-  };
+  async function onPressAdd() {
+    await FirebaseServices.addTodo(todosRef, addTodoText);
+    setAddTodoText("");
+  }
 
-  const renderTodoItem = ({ item, index }) => {
-    const onPressEdit = () => {};
-    const onPressRemove = async () => {
-      try {
-        await todoRef.doc(item.id).delete();
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    return <TodoItem item={item} index={index} />;
-  };
+  function renderTodoItem({ item, index }) {
+    return <TodoItem item={item} key={index} todosRef={todosRef} />;
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          onChangeText={onChangeAddTodoText}
-          value={addTodoText}
-        />
-        <TouchableOpacity style={styles.button} onPress={onPressAdd}>
-          <Text style={styles.buttonText}>Add</Text>
-        </TouchableOpacity>
+    <KeyboardAwareScrollView
+      keyboardShouldPersistTaps={"handled"}
+      style={styles.contain}
+      enableOnAndroid={true}
+    >
+      <View style={styles.container}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            onChangeText={onChangeAddTodoText}
+            value={addTodoText}
+          />
+          <TouchableOpacity style={styles.button} onPress={onPressAdd}>
+            <Text style={styles.buttonText}>Add</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.todoHeader}>To do List</Text>
+        <View style={styles.list}>
+          {todoList.map((item, index) => renderTodoItem({ item, index }))}
+        </View>
       </View>
-      <Text style={styles.todoHeader}>To do List</Text>
-      <FlatList
-        style={styles.list}
-        renderItem={renderTodoItem}
-        data={todoList}
-        scrollEnabled
-      />
-    </View>
+    </KeyboardAwareScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  contain: {},
   container: {
     flex: 1,
     backgroundColor: "#fff",

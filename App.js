@@ -1,18 +1,18 @@
-import firebase from "firebase/compat/app";
-import "firebase/compat/firestore";
+import { initializeApp } from "firebase/app";
 import { PROJECT_ID, APP_ID } from "@env";
 
-import { Main } from "./src/screens";
+import Main from "./src/screens/Main";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   projectId: PROJECT_ID,
   appId: APP_ID,
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
 
 export default function App() {
-  return <Main />;
+  return <Main db={db} />;
 }

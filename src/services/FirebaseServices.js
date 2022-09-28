@@ -1,36 +1,38 @@
-import firebase from "firebase/compat/app";
+import {
+  addDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 
-const addTodo = async (text) => {
+async function addTodo(todoCollection, text) {
   const todoData = {
     text: text,
-    createAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createAt: serverTimestamp(),
   };
   try {
-    await firebase.firestore().collection("todos").add(todoData);
+    await addDoc(todoCollection, todoData);
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-const updateTodo = async (id, text) => {
+async function updateTodo(todoCollection, id, text) {
   try {
-    await firebase
-      .firestore()
-      .collection("todos")
-      .doc(id)
-      .update({ text: text });
+    await updateDoc(doc(todoCollection, id), { text });
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-const removeTodo = async (id) => {
+async function removeTodo(todoCollection, id) {
   try {
-    await firebase.firestore().collection("todos").doc(id).delete();
+    await deleteDoc(doc(todoCollection, id));
   } catch (error) {
     console.log(error);
   }
-};
+}
 
 const FirebaseService = { addTodo, updateTodo, removeTodo };
 

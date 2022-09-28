@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  FlatList,
   StyleSheet,
   Text,
   TextInput,
@@ -10,30 +9,30 @@ import {
 
 import FirebaseServices from "../services/FirebaseServices";
 
-export const TodoItem = ({ item }) => {
+export default function TodoItem({ item, todosRef }) {
   const [todoText, setTodoText] = useState(item.text);
   const [isEditable, setIsEditable] = useState(false);
 
-  const onPressEdit = () => {
+  function onPressEdit() {
     setIsEditable(true);
-  };
+  }
 
-  const onPressSave = async () => {
-    await FirebaseServices.updateTodo(item.id, todoText);
+  async function onPressSave() {
+    await FirebaseServices.updateTodo(todosRef, item.id, todoText);
     setIsEditable(false);
-  };
+  }
 
-  const onPressCancel = () => {
+  function onPressCancel() {
     setIsEditable(false);
-  };
+  }
 
-  const onPressRemove = async () => {
-    await FirebaseServices.removeTodo(item.id);
-  };
+  async function onPressRemove() {
+    await FirebaseServices.removeTodo(todosRef, item.id);
+  }
 
-  const onChangeTodoText = (text) => {
+  function onChangeTodoText(text) {
     setTodoText(text);
-  };
+  }
 
   return (
     <View style={styles.itemContainer}>
@@ -69,7 +68,7 @@ export const TodoItem = ({ item }) => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   input: {
